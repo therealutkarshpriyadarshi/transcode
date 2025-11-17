@@ -1,0 +1,20 @@
+apiVersion: v2
+name: transcode
+description: A production-grade distributed video transcoding service
+type: application
+version: 6.0.0
+appVersion: "6.0.0"
+keywords:
+  - video
+  - transcoding
+  - ffmpeg
+  - streaming
+  - hls
+  - dash
+home: https://github.com/therealutkarshpriyadarshi/transcode
+sources:
+  - https://github.com/therealutkarshpriyadarshi/transcode
+maintainers:
+  - name: Transcode Team
+    email: support@transcode.example.com
+dependencies: []

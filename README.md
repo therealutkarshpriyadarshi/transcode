@@ -74,6 +74,10 @@ A production-grade distributed video transcoding service that converts uploaded 
 - **Cache**: Redis 7+
 - **API Framework**: Gin
 - **Containerization**: Docker & Docker Compose
+- **Orchestration**: Kubernetes with Helm
+- **Monitoring**: Prometheus + Grafana
+- **Tracing**: Jaeger
+- **Alerting**: AlertManager
 
 ## Project Structure
 
@@ -87,10 +91,18 @@ transcode/
 │   ├── database/     # Database connection and repository
 │   ├── queue/        # RabbitMQ queue operations
 │   ├── storage/      # MinIO/S3 storage operations
-│   └── transcoder/   # FFmpeg wrapper and transcoding logic
+│   ├── transcoder/   # FFmpeg wrapper and transcoding logic
+│   ├── metrics/      # Prometheus metrics
+│   ├── logging/      # Structured logging
+│   └── tracing/      # Distributed tracing
 ├── pkg/
 │   └── models/       # Data models
 ├── migrations/       # Database migrations
+├── k8s/             # Kubernetes manifests
+│   ├── base/        # Base deployments and services
+│   ├── monitoring/  # Monitoring stack
+│   ├── helm/        # Helm charts
+│   └── test/        # Kubernetes tests
 ├── test/            # Integration tests
 ├── docker-compose.yml
 ├── config.yaml
@@ -446,8 +458,22 @@ See [roadmap.md](roadmap.md) for the complete project roadmap.
   - Encoding comparison with efficiency metrics
   - 10-30% file size reduction while maintaining quality
 
+- **Phase 6**: Kubernetes & Production Readiness (Weeks 12-14) ✅
+  - Complete Kubernetes deployment with Helm charts
+  - Auto-scaling (HPA) for API and workers based on load and queue depth
+  - StatefulSets for PostgreSQL, Redis, and RabbitMQ
+  - Prometheus metrics collection and monitoring
+  - Grafana dashboards (system overview, jobs, GPU utilization, storage)
+  - Jaeger distributed tracing for request flow
+  - Structured JSON logging with contextual fields
+  - AlertManager with Slack/PagerDuty integration
+  - Network policies for security isolation
+  - Automated backup CronJobs for databases
+  - Disaster recovery procedures with documented RTO/RPO
+  - Production-ready security hardening
+
 ### Coming Next 🚀
-- Phase 6: Kubernetes & Production Readiness
+- Phase 7: Advanced Features & Polish
 
 ## Contributing
 
@@ -468,8 +494,8 @@ For questions or issues, please open an issue on GitHub.
 
 ---
 
-**Status**: Phase 5 Complete ✅
-**Version**: 5.0.0
+**Status**: Phase 6 Complete ✅
+**Version**: 6.0.0
 **Last Updated**: 2025-01-17
 
 ## Phase Documentation
@@ -479,5 +505,6 @@ For questions or issues, please open an issue on GitHub.
 - **Phase 3**: [API & Job Management](PHASE3.md) - Authentication, webhooks, monitoring, advanced scheduling ✅
 - **Phase 4**: [GPU Acceleration & Performance Optimization](PHASE4.md) - NVIDIA NVENC, caching, optimized storage ✅
 - **Phase 5**: [AI-Powered Per-Title Encoding](PHASE5.md) - VMAF quality analysis, content complexity, optimized bitrate ladders ✅
+- **Phase 6**: [Kubernetes & Production Readiness](PHASE6.md) - Kubernetes orchestration, monitoring stack, disaster recovery ✅
 
-For comprehensive Phase 5 documentation including VMAF quality analysis, content complexity detection, per-title bitrate optimization, and API reference, see [PHASE5.md](PHASE5.md).
+For comprehensive Phase 6 documentation including Kubernetes deployment, monitoring & observability, distributed tracing, and disaster recovery procedures, see [PHASE6.md](PHASE6.md).
