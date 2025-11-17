@@ -67,12 +67,22 @@ type QueueConfig struct {
 
 // TranscoderConfig holds transcoding configuration
 type TranscoderConfig struct {
-	WorkerCount     int
-	TempDir         string
-	FFmpegPath      string
-	FFprobePath     string
-	MaxConcurrent   int
-	ChunkSize       int64
+	WorkerCount        int
+	TempDir            string
+	FFmpegPath         string
+	FFprobePath        string
+	MaxConcurrent      int
+	ChunkSize          int64
+	// Phase 4: GPU Acceleration
+	EnableGPU          bool
+	GPUDeviceIndex     int
+	EnableTwoPass      bool
+	// Phase 4: Performance Optimization
+	EnableCache        bool
+	CacheTTL           time.Duration
+	ParallelUpload     bool
+	UploadPartSize     int64
+	MaxConcurrentParts int
 }
 
 // Load reads configuration from file and environment variables
@@ -142,4 +152,14 @@ func setDefaults() {
 	viper.SetDefault("transcoder.ffprobePath", "ffprobe")
 	viper.SetDefault("transcoder.maxConcurrent", 4)
 	viper.SetDefault("transcoder.chunkSize", 5*1024*1024) // 5MB
+	// Phase 4: GPU Acceleration defaults
+	viper.SetDefault("transcoder.enableGPU", true)
+	viper.SetDefault("transcoder.gpuDeviceIndex", -1)
+	viper.SetDefault("transcoder.enableTwoPass", false)
+	// Phase 4: Performance Optimization defaults
+	viper.SetDefault("transcoder.enableCache", true)
+	viper.SetDefault("transcoder.cacheTTL", "5m")
+	viper.SetDefault("transcoder.parallelUpload", true)
+	viper.SetDefault("transcoder.uploadPartSize", 10*1024*1024) // 10MB
+	viper.SetDefault("transcoder.maxConcurrentParts", 10)
 }
