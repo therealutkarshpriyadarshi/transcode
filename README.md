@@ -416,8 +416,17 @@ See [roadmap.md](roadmap.md) for the complete project roadmap.
   - Audio normalization and multi-track support
   - Subtitle extraction and processing
 
+- **Phase 3**: API & Job Management (Weeks 6-7)
+  - JWT and API key authentication
+  - Rate limiting and user quotas
+  - Multipart upload for large files
+  - Webhook notifications with retry logic
+  - Priority-based job scheduler
+  - Dead letter queue for failed jobs
+  - Comprehensive monitoring and metrics
+  - Job pause/resume/cancel functionality
+
 ### Coming Next 🚀
-- Phase 3: API & Job Management
 - Phase 4: GPU Acceleration
 - Phase 5: AI-Powered Per-Title Encoding
 - Phase 6: Kubernetes & Production Readiness
@@ -441,10 +450,14 @@ For questions or issues, please open an issue on GitHub.
 
 ---
 
-**Status**: Phase 2 Complete ✅
-**Version**: 2.0.0
+**Status**: Phase 3 Complete ✅
+**Version**: 3.0.0
 **Last Updated**: 2025-01-17
 
-## Phase 2 Documentation
+## Phase Documentation
 
-For comprehensive Phase 2 documentation including HLS/DASH generation, multi-resolution transcoding, thumbnail generation, audio processing, and subtitle support, see [PHASE2.md](PHASE2.md).
+- **Phase 1**: [Foundation](roadmap.md#phase-1-foundation-weeks-1-2) - Basic transcoding pipeline ✅
+- **Phase 2**: [Multi-Resolution & Adaptive Streaming](PHASE2.md) - HLS/DASH, thumbnails, audio/subtitle processing ✅
+- **Phase 3**: [API & Job Management](PHASE3.md) - Authentication, webhooks, monitoring, advanced scheduling ✅
+
+For comprehensive Phase 3 documentation including authentication, multipart uploads, webhooks, job management, and monitoring, see [PHASE3.md](PHASE3.md).
