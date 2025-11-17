@@ -4,7 +4,7 @@ A production-grade distributed video transcoding service that converts uploaded 
 
 ## Features
 
-### Phase 1 (Current Implementation) ✅
+### Phase 1 (Foundation) ✅
 
 - **Video Upload & Storage**: Upload videos with automatic metadata extraction
 - **FFmpeg Integration**: Full FFmpeg wrapper with progress tracking
@@ -19,6 +19,18 @@ A production-grade distributed video transcoding service that converts uploaded 
 - **Job Management**: Create, monitor, and track transcoding jobs
 - **Progress Tracking**: Real-time transcoding progress updates
 - **Error Handling**: Comprehensive error handling and retry logic
+
+### Phase 2 (Multi-Resolution & Adaptive Streaming) ✅
+
+- **Multi-Resolution Transcoding**: Parallel transcoding to multiple resolutions (144p to 4K)
+- **Intelligent Resolution Selection**: Automatic resolution ladder based on source video
+- **HLS Streaming**: HTTP Live Streaming with master playlists and variant streams
+- **DASH Streaming**: Dynamic Adaptive Streaming with MPD manifests
+- **Thumbnail Generation**: Single thumbnails, sprite sheets, and animated previews
+- **Audio Processing**: Normalization using loudnorm filter, multi-track support
+- **Subtitle Support**: Extract, convert, and burn-in subtitles (VTT, SRT, ASS)
+- **Multiple Codec Support**: H.264, H.265/HEVC, VP9, with optimized encoding profiles
+- **Advanced Database Schema**: Support for thumbnails, subtitles, streaming profiles, audio tracks
 
 ## Architecture
 
@@ -392,13 +404,19 @@ Based on 1080p video transcoding to 720p:
 See [roadmap.md](roadmap.md) for the complete project roadmap.
 
 ### Completed ✅
-- Phase 1: Foundation (Weeks 1-2)
+- **Phase 1**: Foundation (Weeks 1-2)
   - Project setup and infrastructure
   - FFmpeg integration and basic transcoding
   - Worker and API services
 
+- **Phase 2**: Multi-Resolution & Adaptive Streaming (Weeks 3-5)
+  - Multi-resolution transcoding with resolution ladder
+  - HLS/DASH manifest generation and segmented streaming
+  - Thumbnail and sprite sheet generation
+  - Audio normalization and multi-track support
+  - Subtitle extraction and processing
+
 ### Coming Next 🚀
-- Phase 2: Multi-Resolution & Adaptive Streaming
 - Phase 3: API & Job Management
 - Phase 4: GPU Acceleration
 - Phase 5: AI-Powered Per-Title Encoding
@@ -423,6 +441,10 @@ For questions or issues, please open an issue on GitHub.
 
 ---
 
-**Status**: Phase 1 Complete ✅
-**Version**: 1.0.0
+**Status**: Phase 2 Complete ✅
+**Version**: 2.0.0
 **Last Updated**: 2025-01-17
+
+## Phase 2 Documentation
+
+For comprehensive Phase 2 documentation including HLS/DASH generation, multi-resolution transcoding, thumbnail generation, audio processing, and subtitle support, see [PHASE2.md](PHASE2.md).
