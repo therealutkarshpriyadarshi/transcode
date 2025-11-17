@@ -414,5 +414,351 @@ curl "http://localhost:8080/api/v1/videos/$VIDEO_ID/outputs" | jq
 
 ---
 
-**Version**: 1.0.0
+## Phase 7: Advanced Features
+
+### Scene Detection
+
+Detect scene changes and generate intelligent thumbnails.
+
+**Endpoint**: `POST /api/v1/videos/:id/scenes/detect`
+
+**Request Body**:
+```json
+{
+  "threshold": 0.4,
+  "min_scene_duration": 1.0,
+  "max_scenes": 20
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "total_scenes": 15,
+  "scenes": [
+    {
+      "scene_number": 1,
+      "start_time": 0.0,
+      "end_time": 5.2,
+      "duration": 5.2,
+      "frame_path": "/tmp/scenes/scene_001.jpg"
+    }
+  ],
+  "best_scene": {
+    "scene_number": 5,
+    "start_time": 20.1,
+    "end_time": 30.8,
+    "duration": 10.7,
+    "frame_path": "/tmp/scenes/scene_005.jpg"
+  }
+}
+```
+
+---
+
+### Watermarking
+
+Apply text or image watermarks to videos.
+
+**Endpoint**: `POST /api/v1/videos/:id/watermark`
+
+**Request Body (Text Watermark)**:
+```json
+{
+  "watermark_text": "© 2025 My Company",
+  "position": "bottom-right",
+  "opacity": 0.8,
+  "font_size": 24,
+  "font_color": "white",
+  "padding": 10,
+  "output_format": "mp4"
+}
+```
+
+**Request Body (Image Watermark)**:
+```json
+{
+  "watermark_image": "https://example.com/logo.png",
+  "position": "top-right",
+  "opacity": 0.7,
+  "scale": 0.15,
+  "padding": 20,
+  "output_format": "mp4"
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "message": "watermark applied successfully",
+  "url": "https://storage.example.com/videos/123/watermarked/output.mp4",
+  "path": "videos/123/watermarked/output.mp4"
+}
+```
+
+---
+
+### Video Concatenation
+
+Concatenate multiple videos into one.
+
+**Endpoint**: `POST /api/v1/videos/concatenate`
+
+**Request Body**:
+```json
+{
+  "video_ids": ["video-1", "video-2", "video-3"],
+  "method": "filter",
+  "transition_type": "fade",
+  "transition_duration": 1.0,
+  "re_encode": true
+}
+```
+
+**Parameters**:
+- `video_ids` (array, required): Array of video IDs to concatenate
+- `method` (string): "concat" (fast, no re-encoding) or "filter" (slower, supports transitions)
+- `transition_type` (string): "none", "fade", or "dissolve"
+- `transition_duration` (number): Transition duration in seconds
+- `re_encode` (boolean): Force re-encoding
+
+**Response** (200 OK):
+```json
+{
+  "message": "videos concatenated successfully",
+  "url": "https://storage.example.com/videos/concatenated/abc123.mp4",
+  "path": "videos/concatenated/abc123.mp4"
+}
+```
+
+---
+
+### Analytics
+
+#### Track Playback Event
+
+Track individual playback events.
+
+**Endpoint**: `POST /api/v1/analytics/events`
+
+**Request Body**:
+```json
+{
+  "video_id": "video-123",
+  "session_id": "session-456",
+  "user_id": "user-789",
+  "event_type": "play",
+  "position": 10.5,
+  "duration": 120.0,
+  "bitrate": 5000000,
+  "resolution": "1080p",
+  "device_type": "desktop",
+  "browser": "Chrome",
+  "os": "Windows",
+  "country": "US"
+}
+```
+
+**Event Types**:
+- `play`: Video started playing
+- `pause`: Video paused
+- `seek`: User seeked to a position
+- `buffer`: Video buffering occurred
+- `complete`: Video playback completed
+- `error`: Playback error occurred
+- `quality_change`: Video quality changed
+
+**Response** (200 OK):
+```json
+{
+  "message": "event tracked successfully"
+}
+```
+
+---
+
+#### Start Playback Session
+
+Start a new playback session.
+
+**Endpoint**: `POST /api/v1/analytics/sessions/:id/start`
+
+**Request Body**:
+```json
+{
+  "user_id": "user-123",
+  "device_info": {
+    "device_type": "mobile",
+    "browser": "Safari",
+    "os": "iOS",
+    "country": "US"
+  }
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "id": "session-456",
+  "video_id": "video-123",
+  "user_id": "user-123",
+  "start_time": "2025-01-17T10:00:00Z",
+  "device_type": "mobile",
+  "browser": "Safari",
+  "os": "iOS",
+  "country": "US"
+}
+```
+
+---
+
+#### End Playback Session
+
+End a playback session and calculate metrics.
+
+**Endpoint**: `POST /api/v1/analytics/sessions/:session_id/end`
+
+**Response** (200 OK):
+```json
+{
+  "message": "session ended successfully"
+}
+```
+
+---
+
+#### Get Video Analytics
+
+Get aggregated analytics for a video.
+
+**Endpoint**: `GET /api/v1/analytics/videos/:id`
+
+**Response** (200 OK):
+```json
+{
+  "video_id": "video-123",
+  "total_views": 1000,
+  "unique_viewers": 750,
+  "total_watch_time": 5000.5,
+  "average_watch_time": 5.0,
+  "completion_rate": 75.5,
+  "average_buffer_time": 2.5,
+  "buffer_rate": 15.5,
+  "error_rate": 2.5,
+  "average_startup_time": 1.8,
+  "popular_resolutions": {
+    "1080p": 600,
+    "720p": 300,
+    "480p": 100
+  },
+  "geographic_data": {
+    "US": 500,
+    "CA": 200,
+    "UK": 150,
+    "DE": 150
+  },
+  "device_breakdown": {
+    "desktop": 600,
+    "mobile": 300,
+    "tablet": 100
+  },
+  "last_updated": "2025-01-17T12:00:00Z"
+}
+```
+
+---
+
+#### Get Video Heatmap
+
+Get viewer engagement heatmap data.
+
+**Endpoint**: `GET /api/v1/analytics/videos/:id/heatmap?resolution=10`
+
+**Query Parameters**:
+- `resolution` (integer): Time resolution in seconds (default: 10)
+
+**Response** (200 OK):
+```json
+{
+  "video_id": "video-123",
+  "resolution": 10,
+  "data": [
+    {
+      "timestamp": 0,
+      "view_count": 1000,
+      "seek_count": 50
+    },
+    {
+      "timestamp": 10,
+      "view_count": 950,
+      "seek_count": 20
+    }
+  ]
+}
+```
+
+---
+
+#### Get QoE Metrics
+
+Get Quality of Experience metrics for a video.
+
+**Endpoint**: `GET /api/v1/analytics/videos/:id/qoe`
+
+**Query Parameters**:
+- `period` (string): "hourly", "daily", "weekly", or "monthly" (default: "daily")
+- `start` (ISO 8601 date): Start date
+- `end` (ISO 8601 date): End date
+
+**Example**:
+```bash
+curl "http://localhost:8080/api/v1/analytics/videos/video-123/qoe?period=daily&start=2025-01-01T00:00:00Z&end=2025-01-17T00:00:00Z"
+```
+
+**Response** (200 OK):
+```json
+[
+  {
+    "video_id": "video-123",
+    "period": "daily",
+    "timestamp": "2025-01-17T00:00:00Z",
+    "view_count": 100,
+    "average_qoe": 85.5,
+    "rebuffer_ratio": 0.05,
+    "startup_time": 2.1,
+    "bitrate_utilization": 0.8,
+    "error_rate": 0.02,
+    "completion_rate": 75.0
+  }
+]
+```
+
+---
+
+#### Get Trending Videos
+
+Get a list of trending videos.
+
+**Endpoint**: `GET /api/v1/analytics/trending?limit=10`
+
+**Query Parameters**:
+- `limit` (integer): Number of trending videos to return (default: 10, max: 100)
+
+**Response** (200 OK):
+```json
+[
+  {
+    "video_id": "video-123",
+    "title": "Sample Video.mp4",
+    "views": 500,
+    "view_growth": 150.5,
+    "trending_score": 750.0,
+    "last_updated": "2025-01-17T12:00:00Z"
+  }
+]
+```
+
+---
+
+**Version**: 7.0.0
 **Last Updated**: 2025-01-17
