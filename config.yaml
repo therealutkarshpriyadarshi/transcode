@@ -43,3 +43,13 @@ transcoder:
   ffprobePath: "ffprobe"
   maxConcurrent: 4
   chunkSize: 5242880  # 5MB
+  # Phase 4: GPU Acceleration
+  enableGPU: true
+  gpuDeviceIndex: -1  # -1 for auto-select, or specify GPU index
+  enableTwoPass: false  # Enable two-pass encoding for better quality (CPU only)
+  # Phase 4: Performance Optimization
+  enableCache: true
+  cacheTTL: "5m"  # Cache TTL for metadata
+  parallelUpload: true
+  uploadPartSize: 10485760  # 10MB for multipart uploads
+  maxConcurrentParts: 10

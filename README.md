@@ -426,8 +426,17 @@ See [roadmap.md](roadmap.md) for the complete project roadmap.
   - Comprehensive monitoring and metrics
   - Job pause/resume/cancel functionality
 
+- **Phase 4**: GPU Acceleration & Performance Optimization (Weeks 8-9) ✅
+  - NVIDIA NVENC hardware encoding (H.264, H.265)
+  - Automatic GPU detection and multi-GPU support
+  - Intelligent GPU selection based on memory and utilization
+  - Automatic CPU fallback on GPU failure
+  - Two-pass encoding for better quality (CPU)
+  - Redis caching for metadata and thumbnails
+  - Optimized parallel multipart uploads/downloads
+  - GPU resource monitoring and management
+
 ### Coming Next 🚀
-- Phase 4: GPU Acceleration
 - Phase 5: AI-Powered Per-Title Encoding
 - Phase 6: Kubernetes & Production Readiness
 
@@ -450,8 +459,8 @@ For questions or issues, please open an issue on GitHub.
 
 ---
 
-**Status**: Phase 3 Complete ✅
-**Version**: 3.0.0
+**Status**: Phase 4 Complete ✅
+**Version**: 4.0.0
 **Last Updated**: 2025-01-17
 
 ## Phase Documentation
@@ -459,5 +468,6 @@ For questions or issues, please open an issue on GitHub.
 - **Phase 1**: [Foundation](roadmap.md#phase-1-foundation-weeks-1-2) - Basic transcoding pipeline ✅
 - **Phase 2**: [Multi-Resolution & Adaptive Streaming](PHASE2.md) - HLS/DASH, thumbnails, audio/subtitle processing ✅
 - **Phase 3**: [API & Job Management](PHASE3.md) - Authentication, webhooks, monitoring, advanced scheduling ✅
+- **Phase 4**: [GPU Acceleration & Performance Optimization](PHASE4.md) - NVIDIA NVENC, caching, optimized storage ✅
 
-For comprehensive Phase 3 documentation including authentication, multipart uploads, webhooks, job management, and monitoring, see [PHASE3.md](PHASE3.md).
+For comprehensive Phase 4 documentation including GPU acceleration, automatic fallback, caching strategies, and performance optimizations, see [PHASE4.md](PHASE4.md).
