@@ -1,0 +1,190 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: transcode
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM UTC
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: postgres:15-alpine
+            env:
+            - name: POSTGRES_HOST
+              value: postgres-service
+            - name: POSTGRES_DB
+              value: transcode
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: transcode-secrets
+                  key: POSTGRES_PASSWORD
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: transcode-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: transcode-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: S3_BUCKET
+              value: "transcode-backups"
+            - name: BACKUP_RETENTION_DAYS
+              value: "30"
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              echo "Starting PostgreSQL backup..."
+              BACKUP_FILE="transcode-db-$(date +%Y%m%d-%H%M%S).sql.gz"
+
+              # Create backup
+              pg_dump -h $POSTGRES_HOST -U $POSTGRES_USER $POSTGRES_DB | gzip > /tmp/$BACKUP_FILE
+
+              # Install AWS CLI
+              apk add --no-cache aws-cli
+
+              # Upload to S3
+              aws s3 cp /tmp/$BACKUP_FILE s3://$S3_BUCKET/postgres/$BACKUP_FILE
+
+              # Delete old backups
+              aws s3 ls s3://$S3_BUCKET/postgres/ | \
+                awk '{print $4}' | \
+                sort -r | \
+                tail -n +$((BACKUP_RETENTION_DAYS + 1)) | \
+                xargs -I {} aws s3 rm s3://$S3_BUCKET/postgres/{}
+
+              echo "Backup completed successfully: $BACKUP_FILE"
+
+              # Clean up local backup
+              rm /tmp/$BACKUP_FILE
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: redis-backup
+  namespace: transcode
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM UTC
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: redis:7-alpine
+            env:
+            - name: REDIS_HOST
+              value: redis-service
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: transcode-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: transcode-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: S3_BUCKET
+              value: "transcode-backups"
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              echo "Starting Redis backup..."
+              BACKUP_FILE="transcode-redis-$(date +%Y%m%d-%H%M%S).rdb"
+
+              # Trigger Redis save
+              redis-cli -h $REDIS_HOST BGSAVE
+              sleep 10
+
+              # Copy RDB file
+              redis-cli -h $REDIS_HOST --rdb /tmp/$BACKUP_FILE
+
+              # Install AWS CLI
+              apk add --no-cache aws-cli
+
+              # Upload to S3
+              aws s3 cp /tmp/$BACKUP_FILE s3://$S3_BUCKET/redis/$BACKUP_FILE
+
+              echo "Redis backup completed: $BACKUP_FILE"
+
+              # Clean up
+              rm /tmp/$BACKUP_FILE
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: transcode
+data:
+  restore-postgres.sh: |
+    #!/bin/sh
+    set -e
+
+    if [ -z "$1" ]; then
+      echo "Usage: $0 <backup-file>"
+      echo "Example: $0 transcode-db-20250117-020000.sql.gz"
+      exit 1
+    fi
+
+    BACKUP_FILE=$1
+
+    echo "Downloading backup from S3..."
+    aws s3 cp s3://$S3_BUCKET/postgres/$BACKUP_FILE /tmp/$BACKUP_FILE
+
+    echo "Restoring PostgreSQL database..."
+    gunzip -c /tmp/$BACKUP_FILE | psql -h $POSTGRES_HOST -U $POSTGRES_USER $POSTGRES_DB
+
+    echo "Restore completed successfully"
+    rm /tmp/$BACKUP_FILE
+
+  restore-redis.sh: |
+    #!/bin/sh
+    set -e
+
+    if [ -z "$1" ]; then
+      echo "Usage: $0 <backup-file>"
+      echo "Example: $0 transcode-redis-20250117-030000.rdb"
+      exit 1
+    fi
+
+    BACKUP_FILE=$1
+
+    echo "Downloading backup from S3..."
+    aws s3 cp s3://$S3_BUCKET/redis/$BACKUP_FILE /tmp/dump.rdb
+
+    echo "Stopping Redis..."
+    redis-cli -h $REDIS_HOST SHUTDOWN NOSAVE || true
+    sleep 5
+
+    echo "Copying backup file..."
+    # This would require access to the Redis data volume
+    echo "Manual step required: Copy /tmp/dump.rdb to Redis data directory"
+
+    echo "Restart Redis pod to load the backup"

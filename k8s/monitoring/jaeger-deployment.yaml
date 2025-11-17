@@ -1,0 +1,308 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: transcode
+  labels:
+    app: jaeger
+    component: collector
+spec:
+  type: ClusterIP
+  ports:
+  - name: jaeger-collector-tchannel
+    port: 14267
+    protocol: TCP
+    targetPort: 14267
+  - name: jaeger-collector-http
+    port: 14268
+    protocol: TCP
+    targetPort: 14268
+  - name: jaeger-collector-grpc
+    port: 14250
+    protocol: TCP
+    targetPort: 14250
+  - name: jaeger-collector-zipkin
+    port: 9411
+    protocol: TCP
+    targetPort: 9411
+  selector:
+    app: jaeger
+    component: collector
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-query
+  namespace: transcode
+  labels:
+    app: jaeger
+    component: query
+spec:
+  type: ClusterIP
+  ports:
+  - name: jaeger-query-http
+    port: 16686
+    protocol: TCP
+    targetPort: 16686
+  - name: jaeger-query-grpc
+    port: 16685
+    protocol: TCP
+    targetPort: 16685
+  selector:
+    app: jaeger
+    component: query
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-agent
+  namespace: transcode
+  labels:
+    app: jaeger
+    component: agent
+spec:
+  clusterIP: None
+  ports:
+  - name: jaeger-agent-zipkin-thrift
+    port: 5775
+    protocol: UDP
+    targetPort: 5775
+  - name: jaeger-agent-compact
+    port: 6831
+    protocol: UDP
+    targetPort: 6831
+  - name: jaeger-agent-binary
+    port: 6832
+    protocol: UDP
+    targetPort: 6832
+  - name: jaeger-agent-http
+    port: 5778
+    protocol: TCP
+    targetPort: 5778
+  selector:
+    app: jaeger
+    component: agent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  namespace: transcode
+  labels:
+    app: jaeger
+    component: collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+      component: collector
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: collector
+    spec:
+      containers:
+      - name: jaeger-collector
+        image: jaegertracing/jaeger-collector:1.50
+        args:
+        - --config-file=/etc/jaeger/config.yaml
+        env:
+        - name: SPAN_STORAGE_TYPE
+          value: elasticsearch
+        - name: ES_SERVER_URLS
+          value: http://elasticsearch:9200
+        - name: ES_USERNAME
+          value: elastic
+        - name: ES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+        ports:
+        - containerPort: 14267
+          protocol: TCP
+        - containerPort: 14268
+          protocol: TCP
+        - containerPort: 14250
+          protocol: TCP
+        - containerPort: 9411
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/jaeger
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 14269
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: jaeger-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-query
+  namespace: transcode
+  labels:
+    app: jaeger
+    component: query
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+      component: query
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: query
+    spec:
+      containers:
+      - name: jaeger-query
+        image: jaegertracing/jaeger-query:1.50
+        args:
+        - --config-file=/etc/jaeger/config.yaml
+        env:
+        - name: SPAN_STORAGE_TYPE
+          value: elasticsearch
+        - name: ES_SERVER_URLS
+          value: http://elasticsearch:9200
+        - name: ES_USERNAME
+          value: elastic
+        - name: ES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+        ports:
+        - containerPort: 16686
+          protocol: TCP
+        - containerPort: 16685
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/jaeger
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 16687
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: jaeger-config
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: jaeger-agent
+  namespace: transcode
+  labels:
+    app: jaeger
+    component: agent
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+      component: agent
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: agent
+    spec:
+      containers:
+      - name: jaeger-agent
+        image: jaegertracing/jaeger-agent:1.50
+        args:
+        - --reporter.grpc.host-port=jaeger-collector:14250
+        - --reporter.type=grpc
+        ports:
+        - containerPort: 5775
+          protocol: UDP
+        - containerPort: 6831
+          protocol: UDP
+        - containerPort: 6832
+          protocol: UDP
+        - containerPort: 5778
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger-config
+  namespace: transcode
+data:
+  config.yaml: |
+    # Jaeger configuration
+    service_name: transcode
+    disabled: false
+    sampler:
+      type: probabilistic
+      param: 0.1  # Sample 10% of traces
+    reporter:
+      log_spans: false
+      buffer_flush_interval: 1s
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: elasticsearch-credentials
+  namespace: transcode
+type: Opaque
+stringData:
+  password: "changeme"  # Change in production
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jaeger-query-ingress
+  namespace: transcode
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - jaeger.transcode.example.com
+    secretName: jaeger-tls
+  rules:
+  - host: jaeger.transcode.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jaeger-query
+            port:
+              number: 16686

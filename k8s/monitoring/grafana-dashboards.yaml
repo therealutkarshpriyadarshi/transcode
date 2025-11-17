@@ -1,0 +1,307 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: transcode
+data:
+  system-overview.json: |
+    {
+      "dashboard": {
+        "title": "Transcode System Overview",
+        "tags": ["transcode", "overview"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "API Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(transcode_http_requests_total[5m])",
+                "legendFormat": "{{method}} {{endpoint}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "API Latency (p95)",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(transcode_http_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "{{method}} {{endpoint}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Queue Depth",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "transcode_jobs_queue_depth",
+                "legendFormat": "Queue Depth"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Jobs In Progress",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "transcode_jobs_in_progress",
+                "legendFormat": "In Progress"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          },
+          {
+            "id": 5,
+            "title": "Active Workers",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum by (worker_type) (transcode_worker_active)",
+                "legendFormat": "{{worker_type}}"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 0, "y": 16}
+          },
+          {
+            "id": 6,
+            "title": "Job Success Rate",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "rate(transcode_jobs_completed_total{status=\"completed\"}[5m]) / rate(transcode_jobs_completed_total[5m])",
+                "legendFormat": "Success Rate"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 6, "y": 16}
+          }
+        ]
+      }
+    }
+
+  jobs-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "Transcode Jobs Dashboard",
+        "tags": ["transcode", "jobs"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Jobs Created",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(transcode_jobs_created_total[5m])",
+                "legendFormat": "Priority {{priority}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Jobs Completed",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(transcode_jobs_completed_total[5m])",
+                "legendFormat": "{{status}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Job Duration by Resolution",
+            "type": "heatmap",
+            "targets": [
+              {
+                "expr": "rate(transcode_job_duration_seconds_bucket[5m])",
+                "legendFormat": "{{resolution}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Queue Time",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(transcode_job_queue_time_seconds_bucket[5m]))",
+                "legendFormat": "p95 Queue Time"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          },
+          {
+            "id": 5,
+            "title": "Transcoding Speed",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "avg by (worker_type, resolution) (transcode_speed_ratio)",
+                "legendFormat": "{{worker_type}} {{resolution}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+          },
+          {
+            "id": 6,
+            "title": "VMAF Quality Score",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "avg by (resolution, codec) (transcode_vmaf_score)",
+                "legendFormat": "{{resolution}} {{codec}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+          }
+        ]
+      }
+    }
+
+  gpu-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "GPU Utilization Dashboard",
+        "tags": ["transcode", "gpu"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "GPU Utilization",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "transcode_gpu_utilization_percent",
+                "legendFormat": "GPU {{gpu_id}} Worker {{worker_id}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "GPU Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "transcode_gpu_memory_used_bytes / 1024 / 1024 / 1024",
+                "legendFormat": "GPU {{gpu_id}} Worker {{worker_id}}"
+              }
+            ],
+            "yaxes": [
+              {"format": "decgbytes"}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "GPU Temperature",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "transcode_gpu_temperature_celsius",
+                "legendFormat": "GPU {{gpu_id}} Worker {{worker_id}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "GPU vs CPU Speed Comparison",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "avg by (worker_type) (transcode_speed_ratio)",
+                "legendFormat": "{{worker_type}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          }
+        ]
+      }
+    }
+
+  storage-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "Storage & Database Dashboard",
+        "tags": ["transcode", "storage"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Storage Operations",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(transcode_storage_operations_total[5m])",
+                "legendFormat": "{{operation}} {{status}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Storage Bandwidth",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(transcode_storage_bytes_transferred_total[5m]) / 1024 / 1024",
+                "legendFormat": "{{operation}}"
+              }
+            ],
+            "yaxes": [
+              {"format": "MBs"}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Database Operations",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(transcode_database_operations_total[5m])",
+                "legendFormat": "{{operation}} {{status}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Database Connections",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "transcode_database_connections_active",
+                "legendFormat": "Active Connections"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          },
+          {
+            "id": 5,
+            "title": "Cache Hit Rate",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "rate(transcode_cache_hits_total[5m]) / (rate(transcode_cache_hits_total[5m]) + rate(transcode_cache_misses_total[5m]))",
+                "legendFormat": "{{cache_type}}"
+              }
+            ],
+            "gridPos": {"h": 6, "w": 12, "x": 0, "y": 16}
+          }
+        ]
+      }
+    }

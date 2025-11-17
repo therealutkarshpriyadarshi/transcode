@@ -9,10 +9,14 @@ require (
 	github.com/google/uuid v1.5.0
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/minio/minio-go/v7 v7.0.66
+	github.com/opentracing/opentracing-go v1.2.0
+	github.com/prometheus/client_golang v1.18.0
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/redis/go-redis/v9 v9.4.0
+	github.com/rs/zerolog v1.31.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
+	github.com/uber/jaeger-client-go v2.30.0+incompatible
 )
 
 require (
