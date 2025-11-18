@@ -295,6 +295,86 @@ func (r *Repository) GetOutputsByJobID(ctx context.Context, jobID string) ([]*mo
 	return outputs, nil
 }
 
+// DeleteVideo deletes a video and all associated records
+func (r *Repository) DeleteVideo(ctx context.Context, videoID string) error {
+	// Start a transaction to ensure all deletions succeed or fail together
+	tx, err := r.db.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	// Delete outputs
+	_, err = tx.Exec(ctx, "DELETE FROM outputs WHERE video_id = $1", videoID)
+	if err != nil {
+		return fmt.Errorf("failed to delete outputs: %w", err)
+	}
+
+	// Delete jobs
+	_, err = tx.Exec(ctx, "DELETE FROM jobs WHERE video_id = $1", videoID)
+	if err != nil {
+		return fmt.Errorf("failed to delete jobs: %w", err)
+	}
+
+	// Delete thumbnails (if table exists)
+	_, err = tx.Exec(ctx, "DELETE FROM thumbnails WHERE video_id = $1", videoID)
+	if err != nil {
+		// Ignore error if table doesn't exist
+		// We'll continue with video deletion
+	}
+
+	// Delete subtitles (if table exists)
+	_, err = tx.Exec(ctx, "DELETE FROM subtitles WHERE video_id = $1", videoID)
+	if err != nil {
+		// Ignore error if table doesn't exist
+	}
+
+	// Delete audio tracks (if table exists)
+	_, err = tx.Exec(ctx, "DELETE FROM audio_tracks WHERE video_id = $1", videoID)
+	if err != nil {
+		// Ignore error if table doesn't exist
+	}
+
+	// Delete the video itself
+	result, err := tx.Exec(ctx, "DELETE FROM videos WHERE id = $1", videoID)
+	if err != nil {
+		return fmt.Errorf("failed to delete video: %w", err)
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("video not found")
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+// CancelJob cancels a job by updating its status
+func (r *Repository) CancelJob(ctx context.Context, jobID string) error {
+	query := `
+		UPDATE jobs
+		SET status = 'cancelled', updated_at = NOW()
+		WHERE id = $1 AND status IN ('pending', 'queued', 'processing')
+		RETURNING id
+	`
+
+	var id string
+	err := r.db.Pool.QueryRow(ctx, query, jobID).Scan(&id)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return fmt.Errorf("job not found or cannot be cancelled")
+		}
+		return fmt.Errorf("failed to cancel job: %w", err)
+	}
+
+	return nil
+}
+
 // GetOutputsByVideoID retrieves all outputs for a video
 func (r *Repository) GetOutputsByVideoID(ctx context.Context, videoID string) ([]*models.Output, error) {
 	query := `

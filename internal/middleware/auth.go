@@ -13,14 +13,20 @@ import (
 
 const (
 	AuthContextKey = "user_id"
-	JWTSecret      = "your-secret-key-change-this-in-production" // TODO: Move to config
 )
+
+var jwtSecret string
 
 // Claims represents JWT claims
 type Claims struct {
 	UserID string `json:"user_id"`
 	Email  string `json:"email"`
 	jwt.RegisteredClaims
+}
+
+// SetJWTSecret sets the JWT secret for the middleware
+func SetJWTSecret(secret string) {
+	jwtSecret = secret
 }
 
 // JWTAuth middleware validates JWT tokens
@@ -45,7 +51,7 @@ func JWTAuth() gin.HandlerFunc {
 
 		// Parse and validate token
 		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(JWTSecret), nil
+			return []byte(jwtSecret), nil
 		})
 
 		if err != nil || !token.Valid {
@@ -103,7 +109,7 @@ func OptionalAuth(validator APIKeyValidator) gin.HandlerFunc {
 			parts := strings.Split(authHeader, " ")
 			if len(parts) == 2 && parts[0] == "Bearer" {
 				token, err := jwt.ParseWithClaims(parts[1], &Claims{}, func(token *jwt.Token) (interface{}, error) {
-					return []byte(JWTSecret), nil
+					return []byte(jwtSecret), nil
 				})
 				if err == nil && token.Valid {
 					if claims, ok := token.Claims.(*Claims); ok {
@@ -145,7 +151,7 @@ func GenerateToken(userID, email string, expiresIn time.Duration) (string, error
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(JWTSecret))
+	return token.SignedString([]byte(jwtSecret))
 }
 
 // GetUserID retrieves the user ID from the context
