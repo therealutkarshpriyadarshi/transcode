@@ -81,11 +81,11 @@ func (api *API) login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token":    token,
-		"user_id":  user.ID,
-		"email":    user.Email,
-		"api_key":  user.APIKey,
-		"quota":    user.Quota,
+		"token":      token,
+		"user_id":    user.ID,
+		"email":      user.Email,
+		"api_key":    user.APIKey,
+		"quota":      user.Quota,
 		"used_quota": user.UsedQuota,
 	})
 }
@@ -239,9 +239,9 @@ func (api *API) createWebhook(c *gin.Context) {
 	}
 
 	var req struct {
-		URL    string                `json:"url" binding:"required,url"`
-		Events models.WebhookEvents  `json:"events" binding:"required"`
-		Secret string                `json:"secret"`
+		URL    string               `json:"url" binding:"required,url"`
+		Events models.WebhookEvents `json:"events" binding:"required"`
+		Secret string               `json:"secret"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

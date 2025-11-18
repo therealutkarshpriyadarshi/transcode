@@ -9,12 +9,13 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	Redis    RedisConfig
-	Storage  StorageConfig
-	Queue    QueueConfig
+	Server     ServerConfig
+	Database   DatabaseConfig
+	Redis      RedisConfig
+	Storage    StorageConfig
+	Queue      QueueConfig
 	Transcoder TranscoderConfig
+	Auth       AuthConfig
 }
 
 // ServerConfig holds HTTP server configuration
@@ -67,22 +68,28 @@ type QueueConfig struct {
 
 // TranscoderConfig holds transcoding configuration
 type TranscoderConfig struct {
-	WorkerCount        int
-	TempDir            string
-	FFmpegPath         string
-	FFprobePath        string
-	MaxConcurrent      int
-	ChunkSize          int64
+	WorkerCount   int
+	TempDir       string
+	FFmpegPath    string
+	FFprobePath   string
+	MaxConcurrent int
+	ChunkSize     int64
 	// Phase 4: GPU Acceleration
-	EnableGPU          bool
-	GPUDeviceIndex     int
-	EnableTwoPass      bool
+	EnableGPU      bool
+	GPUDeviceIndex int
+	EnableTwoPass  bool
 	// Phase 4: Performance Optimization
 	EnableCache        bool
 	CacheTTL           time.Duration
 	ParallelUpload     bool
 	UploadPartSize     int64
 	MaxConcurrentParts int
+}
+
+// AuthConfig holds authentication configuration
+type AuthConfig struct {
+	JWTSecret     string
+	JWTExpiration time.Duration
 }
 
 // Load reads configuration from file and environment variables
@@ -162,4 +169,8 @@ func setDefaults() {
 	viper.SetDefault("transcoder.parallelUpload", true)
 	viper.SetDefault("transcoder.uploadPartSize", 10*1024*1024) // 10MB
 	viper.SetDefault("transcoder.maxConcurrentParts", 10)
+
+	// Auth defaults
+	viper.SetDefault("auth.jwtSecret", "change-this-secret-in-production")
+	viper.SetDefault("auth.jwtExpiration", "24h")
 }

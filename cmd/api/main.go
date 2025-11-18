@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/therealutkarshpriyadarshi/transcode/internal/config"
 	"github.com/therealutkarshpriyadarshi/transcode/internal/database"
+	"github.com/therealutkarshpriyadarshi/transcode/internal/middleware"
 	"github.com/therealutkarshpriyadarshi/transcode/internal/queue"
 	"github.com/therealutkarshpriyadarshi/transcode/internal/storage"
 	"github.com/therealutkarshpriyadarshi/transcode/internal/transcoder"
@@ -21,10 +22,10 @@ import (
 )
 
 type API struct {
-	repo      *database.Repository
-	storage   *storage.Storage
-	queue     *queue.Queue
-	ffmpeg    *transcoder.FFmpeg
+	repo    *database.Repository
+	storage *storage.Storage
+	queue   *queue.Queue
+	ffmpeg  *transcoder.FFmpeg
 }
 
 func main() {
@@ -38,6 +39,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+
+	// Initialize JWT secret from config
+	middleware.SetJWTSecret(cfg.Auth.JWTSecret)
+	log.Printf("JWT authentication configured")
 
 	// Initialize database
 	db, err := database.New(cfg.Database)
@@ -248,8 +253,49 @@ func (api *API) listVideos(c *gin.Context) {
 
 // Delete video endpoint
 func (api *API) deleteVideo(c *gin.Context) {
-	// TODO: Implement video deletion
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "Not implemented"})
+	videoID := c.Param("id")
+
+	// Get video to ensure it exists and get the original URL
+	video, err := api.repo.GetVideo(c.Request.Context(), videoID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Video not found"})
+		return
+	}
+
+	// Get all outputs to delete their files from storage
+	outputs, err := api.repo.GetOutputsByVideoID(c.Request.Context(), videoID)
+	if err != nil {
+		log.Printf("Warning: Failed to get outputs for video %s: %v", videoID, err)
+		// Continue with deletion even if we can't get outputs
+	}
+
+	// Delete output files from storage
+	for _, output := range outputs {
+		if output.Path != "" {
+			if err := api.storage.Delete(c.Request.Context(), output.Path); err != nil {
+				log.Printf("Warning: Failed to delete output file %s: %v", output.Path, err)
+				// Continue with deletion even if storage deletion fails
+			}
+		}
+	}
+
+	// Delete original video file from storage
+	if video.OriginalURL != "" {
+		// Extract object name from URL (assuming it's the last part)
+		objectName := video.OriginalURL
+		if err := api.storage.Delete(c.Request.Context(), objectName); err != nil {
+			log.Printf("Warning: Failed to delete original video file %s: %v", objectName, err)
+			// Continue with deletion even if storage deletion fails
+		}
+	}
+
+	// Delete video and all associated records from database
+	if err := api.repo.DeleteVideo(c.Request.Context(), videoID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to delete video: %v", err)})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Video deleted successfully", "video_id": videoID})
 }
 
 // Create transcode job endpoint
@@ -340,8 +386,19 @@ func (api *API) getVideoJobs(c *gin.Context) {
 
 // Cancel job endpoint
 func (api *API) cancelJob(c *gin.Context) {
-	// TODO: Implement job cancellation
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "Not implemented"})
+	jobID := c.Param("id")
+
+	// Cancel the job in the database
+	if err := api.repo.CancelJob(c.Request.Context(), jobID); err != nil {
+		if err.Error() == "job not found or cannot be cancelled" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to cancel job: %v", err)})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Job cancelled successfully", "job_id": jobID})
 }
 
 // Get video outputs endpoint

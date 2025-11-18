@@ -53,3 +53,7 @@ transcoder:
   parallelUpload: true
   uploadPartSize: 10485760  # 10MB for multipart uploads
   maxConcurrentParts: 10
+
+auth:
+  jwtSecret: "${JWT_SECRET}"  # Set via environment variable for security
+  jwtExpiration: "24h"  # Token expiration time
