@@ -13,13 +13,13 @@ import (
 // CreateLiveStream creates a new live stream
 func (api *API) createLiveStream(c *gin.Context) {
 	var req struct {
-		Title        string                      `json:"title" binding:"required"`
-		Description  string                      `json:"description"`
-		UserID       string                      `json:"user_id" binding:"required"`
-		DVREnabled   bool                        `json:"dvr_enabled"`
-		DVRWindow    int                         `json:"dvr_window"` // in seconds
-		LowLatency   bool                        `json:"low_latency"`
-		Settings     *models.LiveStreamSettings  `json:"settings"`
+		Title       string                     `json:"title" binding:"required"`
+		Description string                     `json:"description"`
+		UserID      string                     `json:"user_id" binding:"required"`
+		DVREnabled  bool                       `json:"dvr_enabled"`
+		DVRWindow   int                        `json:"dvr_window"` // in seconds
+		LowLatency  bool                       `json:"low_latency"`
+		Settings    *models.LiveStreamSettings `json:"settings"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

@@ -188,11 +188,11 @@ func (api *API) transcodeWithProfileHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"video_id":    videoID,
-		"profile_id":  profile.ID,
-		"jobs":        jobs,
-		"jobs_count":  len(jobs),
-		"message":     "transcoding jobs created with optimized profile",
+		"video_id":   videoID,
+		"profile_id": profile.ID,
+		"jobs":       jobs,
+		"jobs_count": len(jobs),
+		"message":    "transcoding jobs created with optimized profile",
 	})
 }
 
@@ -217,9 +217,9 @@ func (api *API) createBitrateExperimentHandler(c *gin.Context) {
 	videoID := c.Param("id")
 
 	var req struct {
-		Name         string                  `json:"name" binding:"required"`
-		LadderConfig []models.BitratePoint   `json:"ladder_config" binding:"required"`
-		Params       map[string]interface{}  `json:"params"`
+		Name         string                 `json:"name" binding:"required"`
+		LadderConfig []models.BitratePoint  `json:"ladder_config" binding:"required"`
+		Params       map[string]interface{} `json:"params"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

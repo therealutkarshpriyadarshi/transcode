@@ -405,7 +405,7 @@ func TestCreateBitrateExperimentHandler_Success(t *testing.T) {
 	router.POST("/api/v1/videos/:id/experiments", api.createBitrateExperimentHandler)
 
 	requestBody := map[string]interface{}{
-		"name": experimentName,
+		"name":          experimentName,
 		"ladder_config": ladderConfig,
 	}
 	jsonBody, _ := json.Marshal(requestBody)

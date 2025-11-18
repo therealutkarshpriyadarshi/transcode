@@ -21,12 +21,12 @@ func TestCreateLiveStream(t *testing.T) {
 	router := gin.New()
 
 	req := map[string]interface{}{
-		"title":        "Test Live Stream",
-		"description":  "A test stream",
-		"user_id":      "user-123",
-		"dvr_enabled":  true,
-		"dvr_window":   7200,
-		"low_latency":  true,
+		"title":       "Test Live Stream",
+		"description": "A test stream",
+		"user_id":     "user-123",
+		"dvr_enabled": true,
+		"dvr_window":  7200,
+		"low_latency": true,
 	}
 
 	body, err := json.Marshal(req)
@@ -147,15 +147,15 @@ func TestViewerSessionTracking(t *testing.T) {
 	userID := "user-123"
 
 	viewer := &models.LiveStreamViewer{
-		ID:            "viewer-123",
-		LiveStreamID:  "stream-456",
-		SessionID:     "session-789",
-		UserID:        &userID,
-		JoinedAt:      now,
-		Resolution:    "1080p",
-		DeviceType:    "desktop",
-		Location:      "US",
-		BufferEvents:  0,
+		ID:             "viewer-123",
+		LiveStreamID:   "stream-456",
+		SessionID:      "session-789",
+		UserID:         &userID,
+		JoinedAt:       now,
+		Resolution:     "1080p",
+		DeviceType:     "desktop",
+		Location:       "US",
+		BufferEvents:   0,
 		QualityChanges: 0,
 	}
 
@@ -238,10 +238,10 @@ func TestBandwidthCalculations(t *testing.T) {
 		resolution string
 		bitrate    int64
 	}{
-		{"1080p", 5000000},  // 5 Mbps
-		{"720p", 2800000},   // 2.8 Mbps
-		{"480p", 1400000},   // 1.4 Mbps
-		{"360p", 800000},    // 800 Kbps
+		{"1080p", 5000000}, // 5 Mbps
+		{"720p", 2800000},  // 2.8 Mbps
+		{"480p", 1400000},  // 1.4 Mbps
+		{"360p", 800000},   // 800 Kbps
 	}
 
 	totalBandwidth := int64(0)

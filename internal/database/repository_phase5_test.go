@@ -30,27 +30,27 @@ func TestRepository_ContentComplexity(t *testing.T) {
 	// repo := NewRepository(testDB)
 
 	complexity := &models.ContentComplexity{
-		ID:                "test-complexity-1",
-		VideoID:           "test-video-1",
-		OverallComplexity: "high",
-		ComplexityScore:   0.75,
-		AvgSpatialInfo:    65.2,
-		MaxSpatialInfo:    85.0,
-		MinSpatialInfo:    45.0,
-		AvgTemporalInfo:   28.4,
-		MaxTemporalInfo:   40.0,
-		MinTemporalInfo:   15.0,
+		ID:                 "test-complexity-1",
+		VideoID:            "test-video-1",
+		OverallComplexity:  "high",
+		ComplexityScore:    0.75,
+		AvgSpatialInfo:     65.2,
+		MaxSpatialInfo:     85.0,
+		MinSpatialInfo:     45.0,
+		AvgTemporalInfo:    28.4,
+		MaxTemporalInfo:    40.0,
+		MinTemporalInfo:    15.0,
 		AvgMotionIntensity: 0.68,
-		MotionVariance:    0.12,
-		SceneChanges:      45,
-		ColorVariance:     0.55,
-		EdgeDensity:       0.62,
-		ContrastRatio:     0.71,
-		ContentCategory:   "sports",
-		HasTextOverlay:    false,
-		HasFastMotion:     true,
-		SamplePoints:      30,
-		AnalyzedAt:        time.Now(),
+		MotionVariance:     0.12,
+		SceneChanges:       45,
+		ColorVariance:      0.55,
+		EdgeDensity:        0.62,
+		ContrastRatio:      0.71,
+		ContentCategory:    "sports",
+		HasTextOverlay:     false,
+		HasFastMotion:      true,
+		SamplePoints:       30,
+		AnalyzedAt:         time.Now(),
 	}
 
 	// Test Create
@@ -78,24 +78,24 @@ func TestRepository_EncodingProfile(t *testing.T) {
 	confidence := 0.85
 
 	profile := &models.EncodingProfile{
-		ID:                  "test-profile-1",
-		VideoID:             "test-video-1",
-		ProfileName:         "high_quality",
-		IsActive:            true,
-		ContentType:         "sports",
-		ComplexityLevel:     "high",
+		ID:              "test-profile-1",
+		VideoID:         "test-video-1",
+		ProfileName:     "high_quality",
+		IsActive:        true,
+		ContentType:     "sports",
+		ComplexityLevel: "high",
 		BitrateeLadder: []models.BitratePoint{
 			{Resolution: "1080p", Bitrate: 10000000, TargetVMAF: 95.0},
 			{Resolution: "720p", Bitrate: 5000000, TargetVMAF: 95.0},
 		},
-		CodecRecommendation:      "libx265",
-		PresetRecommendation:     "medium",
-		TargetVMAFScore:          &targetVMAF,
-		MinVMAFScore:             &minVMAF,
-		EstimatedSizeReduction:   &sizeReduction,
-		ConfidenceScore:          &confidence,
-		CreatedAt:                time.Now(),
-		UpdatedAt:                time.Now(),
+		CodecRecommendation:    "libx265",
+		PresetRecommendation:   "medium",
+		TargetVMAFScore:        &targetVMAF,
+		MinVMAFScore:           &minVMAF,
+		EstimatedSizeReduction: &sizeReduction,
+		ConfidenceScore:        &confidence,
+		CreatedAt:              time.Now(),
+		UpdatedAt:              time.Now(),
 	}
 
 	// Test Create
@@ -129,17 +129,17 @@ func TestRepository_QualityAnalysis(t *testing.T) {
 	testBitrate := int64(5000000)
 
 	analysis := &models.QualityAnalysis{
-		ID:           "test-analysis-1",
-		VideoID:      "test-video-1",
-		AnalysisType: "vmaf",
-		VMAFScore:    &vmafScore,
-		VMAFMin:      &vmafMin,
-		VMAFMax:      &vmafMax,
-		VMAFMean:     &vmafScore,
-		TestBitrate:  &testBitrate,
+		ID:             "test-analysis-1",
+		VideoID:        "test-video-1",
+		AnalysisType:   "vmaf",
+		VMAFScore:      &vmafScore,
+		VMAFMin:        &vmafMin,
+		VMAFMax:        &vmafMax,
+		VMAFMean:       &vmafScore,
+		TestBitrate:    &testBitrate,
 		TestResolution: "1080p",
-		TestCodec:    "libx264",
-		AnalyzedAt:   time.Now(),
+		TestCodec:      "libx264",
+		AnalyzedAt:     time.Now(),
 	}
 
 	// Test Create
@@ -173,12 +173,12 @@ func TestRepository_BitrateExperiment(t *testing.T) {
 			{Resolution: "1080p", Bitrate: 4000000},
 			{Resolution: "720p", Bitrate: 2000000},
 		},
-		TotalSize:      &totalSize,
-		AvgVMAFScore:   &avgVMAF,
-		MinVMAFScore:   &minVMAF,
-		EncodingTime:   &encodingTime,
-		Status:         "pending",
-		CreatedAt:      time.Now(),
+		TotalSize:    &totalSize,
+		AvgVMAFScore: &avgVMAF,
+		MinVMAFScore: &minVMAF,
+		EncodingTime: &encodingTime,
+		Status:       "pending",
+		CreatedAt:    time.Now(),
 	}
 
 	// Test Create
